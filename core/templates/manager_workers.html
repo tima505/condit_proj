@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <h2 class="text-3xl font-bold tracking-tight">Пользователи</h2>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'create_role' %}"
+                class="px-4 py-2 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors font-bold flex items-center gap-2">
+                <i data-lucide="shield-plus" class="w-4 h-4"></i>
+                Создать роль
+            </a>
+            <a href="{% url 'create_worker' %}"
+                class="px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors font-bold flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                Добавить пользователя
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4 font-semibold">Имя пользователя (Логин)</th>
+                        <th class="px-6 py-4 font-semibold">ФИО</th>
+                        <th class="px-6 py-4 font-semibold">Роль</th>
+                        <th class="px-6 py-4 font-semibold text-right">Дата регистрации</th>
+                        <th class="px-6 py-4 font-semibold text-center">Действия</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for worker in workers %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-900">{{ worker.username }}</td>
+                        <td class="px-6 py-4">{{ worker.first_name }} {{ worker.last_name }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-accent/5 text-accent">
+                                {% if worker.custom_role %}
+                                    {{ worker.custom_role.name }}
+                                {% else %}
+                                    {{ worker.get_role_display }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-slate-500">
+                            {{ worker.date_joined|date:"d.m.Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'edit_worker' worker.pk %}" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Редактировать">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </a>
+                                <a href="{% url 'delete_worker' worker.pk %}" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Удалить">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-slate-400 italic">Пользователей пока нет</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confectionery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+tailwind.config = {
+darkMode: 'class',
+theme: {
+extend: {
+fontFamily: { sans: ['Inter', 'sans-serif'] },
+colors: {
+sidebar: '#ffffff',
+bgmain: '#f8fafc',
+textmain: '#0f172a',
+cardbg: '#ffffff',
+cardborder: '#e2e8f0',
+brandred: '#ef4444',
+brandgreen: '#0ea5e9',
+accent: '#10b981',
+brandblue: '#3b82f6',
+}
+}
+}
+}
+</script>
+<style>
+body { background-color: #f8fafc; color: #0f172a; font-family: 'Inter', sans-serif; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f8fafc; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+.active-nav-item { background-color: #f1f5f9; color: #10b981; }
+</style>
+</head>
+<body class="flex h-screen overflow-hidden text-textmain antialiased bg-bgmain">
+<aside id="sidebar" class="w-[280px] bg-sidebar hidden lg:flex flex-col h-full shrink-0 border-r border-cardborder shadow-sm transition-all duration-300">
+<div class="p-8">
+<h1 class="text-2xl font-black tracking-tight flex items-center gap-2"><i data-lucide="cake" class="text-accent w-7 h-7"></i><span class="text-slate-900">Конфети</span></h1>
+<p class="text-[10px] uppercase font-bold text-slate-400 mt-1 tracking-widest pl-9">Панель управления</p>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto">
+{% if user.is_authenticated %}
+<div class="mb-8 px-4 py-4 bg-slate-50 rounded-2xl border border-slate-100 group transition-all">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-accent font-bold border border-accent/20 text-sm shadow-sm">{{ user.username|first|upper }}</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate text-slate-900 leading-tight">{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}</p>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{% if user.role == "admin" %}Администратор{% elif user.role == "manager" %}Менеджер{% elif user.role == "worker" %}Рабочий{% elif user.role == "wholesaler" %}Оптовик{% else %}{{ user.role }}{% endif %}</p>
+</div>
+</div>
+</div>
+{% if user.role == "admin" or user.role == "manager" %}
+{% if not user.custom_role or user.custom_role.can_view_users %}
+<a href="{% url 'create_worker' %}" class="flex items-center gap-3 px-4 py-2 text-accent/80 hover:text-accent font-bold transition-all group"><i data-lucide="user-plus" class="w-4 h-4"></i><span class="text-sm">Новый пользователь</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_wholesalers %}
+<a href="{% url 'create_wholesaler' %}" class="flex items-center gap-3 px-4 py-2 text-accent/80 hover:text-accent font-bold transition-all group"><i data-lucide="user-plus" class="w-4 h-4"></i><span class="text-sm">Новый оптовик</span></a>
+{% endif %}
+<div class="pt-6 pb-2 px-4">
+<p class="text-[10px] uppercase font-bold text-slate-300 tracking-widest">Основное</p>
+</div>
+<a href="{% url 'manager_dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group {% if 'dashboard' in request.path %}active-nav-item shadow-sm{% endif %}"><i data-lucide="layout-dashboard" class="w-5 h-5"></i><span class="text-[13px] font-bold">Дашборд</span></a>
+{% if not user.custom_role or user.custom_role.can_view_cash %}
+<a href="{% url 'cash_history' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"><i data-lucide="wallet" class="w-5 h-5"></i><span class="text-[13px] font-bold">Касса и смены</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_orders %}
+<a href="{% url 'manager_orders' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"><i data-lucide="package" class="w-5 h-5"></i><span class="text-[13px] font-bold">Заказы</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_products %}
+<a href="{% url 'manager_products' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"><i data-lucide="cake-slice" class="w-5 h-5"></i><span class="text-[13px] font-bold">Товары</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_ready_stock %}
+<a href="{% url 'manager_ready_stock' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group {% if request.path == '/manager/ready-stock/' %}bg-slate-50 font-bold{% endif %}"><i data-lucide="box" class="w-5 h-5"></i><span class="text-[13px] font-bold">Готовый склад</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_ingredients %}
+<a href="{% url 'manager_ingredients' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group"><i data-lucide="factory" class="w-5 h-5"></i><span class="text-[13px] font-bold">Склад сырья</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_wholesalers %}
+<a href="{% url 'manager_wholesalers' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group {% if request.path == '/manager/wholesalers/' %}bg-slate-50 font-bold{% endif %}"><i data-lucide="building-2" class="w-5 h-5"></i><span class="text-[13px] font-bold">Оптовики</span></a>
+{% endif %}
+{% if not user.custom_role or user.custom_role.can_view_users or user.custom_role.can_view_workers or user.custom_role.can_view_staff %}
+<a href="{% url 'manager_workers' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 transition-all group {% if request.path == '/manager/workers/' %}bg-slate-50 font-bold{% endif %}"><i data-lucide="users" class="w-5 h-5"></i>
+<span class="text-[13px] font-bold">
+{% if not user.custom_role or user.custom_role.can_view_users %}
+Пользователи
+{% elif user.custom_role.can_view_workers and not user.custom_role.can_view_staff %}
+Рабочие
+{% elif user.custom_role.can_view_staff %}
+Сотрудники
+{% else %}
+Пользователи
+{% endif %}
+</span>
+</a>
+{% endif %}
+{% endif %}
+<div class="mt-auto pt-8 border-t border-slate-50">
+<form action="{% url 'logout' %}" method="post">
+{% csrf_token %}
+<button type="submit" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-slate-900 transition-all group"><i data-lucide="log-out" class="w-5 h-5"></i><span class="text-sm font-bold">Выход</span></button>
+</form>
+</div>
+{% else %}
+<a href="{% url 'login' %}" class="flex items-center gap-3 px-4 py-3 rounded-xl text-accent hover:bg-accent/5 font-bold"><i data-lucide="log-in" class="w-5 h-5"></i><span class="text-sm">Войти</span></a>
+{% endif %}
+</nav>
+</aside>
+<main class="flex-1 flex flex-col h-full w-full overflow-hidden">
+<header class="h-16 flex items-center justify-between px-6 lg:hidden bg-white border-b border-cardborder shadow-sm shrink-0">
+<button id="mobileMenuBtn" class="text-slate-900 focus:outline-none"><i data-lucide="menu"></i></button>
+<h1 class="text-xl font-bold flex items-center gap-2 text-slate-900"><i data-lucide="cake" class="text-accent w-5 h-5"></i><span>Конфети</span></h1>
+<div class="w-6"></div>
+</header>
+<div id="mainScrollArea" class="flex-1 p-6 md:p-10 w-full max-w-[1400px] mx-auto overflow-y-auto">
+{% if messages %}
+<div class="mb-8 space-y-2">
+{% for message in messages %}
+<div class="px-6 py-4 rounded-2xl flex items-center gap-3 shadow-sm border {% if message.tags == 'success' %}bg-green-50 text-green-700 border-green-100{% elif message.tags == 'error' %}bg-red-50 text-red-700 border-red-100{% else %}bg-slate-50 text-slate-700 border-slate-200{% endif %}">
+<i data-lucide="{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}alert-circle{% else %}info{% endif %}" class="w-5 h-5"></i>
+<span class="text-sm font-bold">{{ message }}</span>
+</div>
+{% endfor %}
+</div>
+{% endif %}
+{% block content %}{% endblock %}
+</div>
+</main>
+<script>
+lucide.createIcons();
+var mobileMenuBtn = document.getElementById('mobileMenuBtn');
+var sidebar = document.getElementById('sidebar');
+if (mobileMenuBtn) { mobileMenuBtn.addEventListener('click', function() { sidebar.classList.toggle('hidden'); sidebar.classList.toggle('fixed'); sidebar.classList.toggle('inset-0'); sidebar.classList.toggle('z-50'); sidebar.classList.toggle('w-full'); }); }
+</script>
+</body>
+</html>

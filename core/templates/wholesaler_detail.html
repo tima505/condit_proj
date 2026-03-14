@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8 max-w-7xl mx-auto">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'manager_wholesalers' %}" class="text-accent hover:text-accent/80 font-medium">← Назад</a>
+            <h2 class="text-3xl font-bold tracking-tight">{{ wholesaler.name }}</h2>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Current Balance -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <p class="text-xs uppercase tracking-wider text-slate-400 font-bold">Текущий долг</p>
+            <p class="text-3xl font-black mt-2 {% if wholesaler.balance > 0 %}text-red-500{% else %}text-emerald-500{% endif %}">
+                {{ wholesaler.balance }} ₸
+            </p>
+        </div>
+        <!-- Total Orders -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <p class="text-xs uppercase tracking-wider text-slate-400 font-bold">Всего заказов</p>
+            <p class="text-3xl font-black mt-2 text-slate-800">{{ orders|length }}</p>
+        </div>
+        <!-- Total Payments -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <p class="text-xs uppercase tracking-wider text-slate-400 font-bold">Всего оплат</p>
+            <p class="text-3xl font-black mt-2 text-blue-600">{{ payments|length }}</p>
+        </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-6">
+            <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
+                <i data-lucide="building-2" class="w-7 h-7 text-blue-500"></i>
+            </div>
+            <div>
+                <p class="text-lg font-bold text-slate-800">{{ wholesaler.name }}</p>
+                <p class="text-slate-500">
+                    <i data-lucide="phone" class="w-3.5 h-3.5 inline"></i>
+                    {{ wholesaler.phone|default:"Телефон не указан" }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline / History -->
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+            <h3 class="text-lg font-bold text-slate-800">История операций</h3>
+            <p class="text-xs text-slate-400 mt-1">Все заказы и оплаты в хронологическом порядке</p>
+        </div>
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50/50 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-3 font-semibold">Дата</th>
+                        <th class="px-6 py-3 font-semibold">Тип</th>
+                        <th class="px-6 py-3 font-semibold">Описание</th>
+                        <th class="px-6 py-3 font-semibold">Статус</th>
+                        <th class="px-6 py-3 font-semibold text-right">Сумма</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for item in history %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-slate-500">
+                            {{ item.date|date:"d.m.Y H:i" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if item.type == 'order' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-orange-50 text-orange-600 border border-orange-100">
+                                    <i data-lucide="package" class="w-3 h-3"></i> Заказ
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg bg-green-50 text-green-600 border border-green-100">
+                                    <i data-lucide="banknote" class="w-3 h-3"></i> Оплата
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-slate-800">
+                            {{ item.description }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if item.type == 'payment' %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-emerald-50 text-emerald-600">
+                                    {{ item.status }}
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-slate-100 text-slate-600">
+                                    {{ item.status }}
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold {% if item.is_debt %}text-red-500{% else %}text-emerald-500{% endif %}">
+                            {% if item.is_debt %}+{% else %}-{% endif %}{{ item.amount }} ₸
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400 italic">
+                            <div class="flex flex-col items-center gap-2">
+                                <i data-lucide="inbox" class="w-10 h-10 text-slate-300"></i>
+                                <p>Пока нет операций</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

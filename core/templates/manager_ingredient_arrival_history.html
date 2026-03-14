@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'manager_ingredients' %}" class="text-accent hover:underline">
+                &larr; Назад на склад
+            </a>
+            <h2 class="text-3xl font-bold tracking-tight">История прихода сырья</h2>
+        </div>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4 font-semibold">Дата</th>
+                        <th class="px-6 py-4 font-semibold">Ингредиент</th>
+                        <th class="px-6 py-4 font-semibold text-right">Количество</th>
+                        <th class="px-6 py-4 font-semibold text-right">Цена за ед.</th>
+                        <th class="px-6 py-4 font-semibold text-right">Итого (₸)</th>
+                        <th class="px-6 py-4 font-semibold text-right">Остаток в партии</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for arrival in arrivals %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-slate-500">{{ arrival.timestamp|date:"d.m.Y H:i" }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-900">{{ arrival.ingredient.name }}</td>
+                        <td class="px-6 py-4 text-right text-brandgreen font-bold">
+                            +{{ arrival.quantity }} {{ arrival.ingredient.get_unit_display }}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {{ arrival.price }} ₸
+                        </td>
+                        <td class="px-6 py-4 text-right font-bold">
+                            {{ arrival.total_cost }} ₸
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            {% if arrival.remaining_quantity > 0 %}
+                            <span
+                                class="px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] border border-amber-200">
+                                {{ arrival.remaining_quantity }} {{ arrival.ingredient.get_unit_display }}
+                            </span>
+                            {% else %}
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-400 rounded-full text-[10px]">
+                                Израсходовано
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-slate-400 italic">История приходов пока пуста</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

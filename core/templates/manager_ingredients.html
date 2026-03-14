@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <h2 class="text-3xl font-bold tracking-tight">Склад Сырья</h2>
+        <div class="flex gap-4">
+            <a href="{% url 'ingredient_arrival_history' %}"
+                class="px-4 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors font-bold">
+                📜 История
+            </a>
+            <a href="{% url 'create_ingredient' %}"
+                class="px-4 py-2 border border-accent text-accent rounded-lg hover:bg-accent/5 transition-colors font-bold">
+                + Добавить Сырье
+            </a>
+        </div>
+    </div>
+
+    <!-- Latest Arrivals Preview -->
+    {% if latest_arrivals %}
+    <div class="bg-white border border-slate-200 rounded-xl p-4 mt-6">
+        <h3 class="text-sm font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-accent"></span>
+            Последние поступления
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {% for arrival in latest_arrivals %}
+            <div class="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <div class="text-xs text-slate-400">{{ arrival.timestamp|date:"d.m" }}</div>
+                <div class="font-bold text-sm truncate text-slate-900">{{ arrival.ingredient.name }}</div>
+                <div class="text-brandgreen font-bold text-[10px]">
+                    +{{ arrival.quantity }} {{ arrival.ingredient.get_unit_display }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4 font-semibold">Ингредиент</th>
+                        <th class="px-6 py-4 font-semibold text-right">В наличии (шт/кг)</th>
+                        <th class="px-6 py-4 font-semibold text-right">Мин. остаток</th>
+                        <th class="px-6 py-4 font-semibold text-center">Действия</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for i in ingredients %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-900">{{ i.name }}</td>
+                        <td
+                            class="px-6 py-4 text-right {% if i.quantity <= i.min_stock %}text-brandred font-extrabold animate-pulse{% else %}text-brandgreen{% endif %}">
+                            {{ i.quantity }} {{ i.get_unit_display }}
+                        </td>
+                        <td class="px-6 py-4 text-right text-slate-500 font-bold">{{ i.min_stock }} {{ i.get_unit_display }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="{% url 'add_ingredient_stock' i.id %}"
+                                    class="px-3 py-1.5 bg-accent/10 text-accent border border-accent/20 rounded-lg hover:bg-accent hover:text-white transition-all text-xs font-bold">
+                                    + Приход
+                                </a>
+                                <a href="{% url 'edit_ingredient' i.id %}" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors" title="Редактировать">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </a>
+                                {% if i.quantity <= 0 %}
+                                <a href="{% url 'delete_ingredient' i.id %}" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Удалить">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </a>
+                                {% else %}
+                                <span class="p-2 text-slate-300 cursor-not-allowed" title="Нельзя удалить — на складе ещё {{ i.quantity }} {{ i.get_unit_display }}">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">Сырье пока нет</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

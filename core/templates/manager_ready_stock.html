@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <h2 class="text-3xl font-bold tracking-tight">Готовый склад</h2>
+    </div>
+
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden mt-8">
+        <div class="overflow-x-auto w-full">
+            <table class="w-full text-left whitespace-nowrap min-w-max">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                        <th class="px-6 py-4 font-semibold">Название товара</th>
+                        <th class="px-6 py-4 font-semibold">Цена продажи</th>
+                        <th class="px-6 py-4 font-semibold text-right">Текущий остаток</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                    {% for p in products %}
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-bold text-slate-900">{{ p.name }}</td>
+                        <td class="px-6 py-4 font-medium text-slate-500">{{ p.price }} ₸</td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="px-3 py-1 font-bold rounded-lg {% if p.stock_quantity > 0 %}bg-accent/10 text-accent{% else %}bg-slate-100 text-slate-500{% endif %}">
+                                {{ p.stock_quantity }} шт
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-slate-400 italic">Товаров в каталоге пока нет</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

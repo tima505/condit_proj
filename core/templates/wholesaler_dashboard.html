@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <div class="flex items-center justify-between border-b border-slate-200 pb-4">
+        <h2 class="text-3xl font-bold tracking-tight">Кабинет Оптовика</h2>
+        <div class="text-right">
+            <p class="text-sm opacity-70">Мой баланс (долг)</p>
+            <p
+                class="text-3xl font-bold {% if wholesaler.balance > 0 %}text-brandred{% else %}text-brandgreen{% endif %}">
+                {{ wholesaler.balance }} ₸
+            </p>
+        </div>
+    </div>
+
+    <!-- Actions area (Tabs simulator) bg-cardbg rounded-2xl p-6 -->
+    <div x-data="{ tab: 'catalog' }">
+        <div class="flex flex-col md:flex-row gap-4 mb-6 border-b border-slate-200 pb-4">
+            <button @click="tab = 'catalog'"
+                :class="{'text-accent font-bold border-b-2 border-accent': tab === 'catalog', 'opacity-70 hover:opacity-100': tab !== 'catalog'}"
+                class="px-4 py-2 uppercase tracking-wide text-sm transition-all focus:outline-none">
+                <span class="mr-2">🛍</span> Каталог товаров
+            </button>
+            <button @click="tab = 'history'"
+                :class="{'text-accent font-bold border-b-2 border-accent': tab === 'history', 'opacity-70 hover:opacity-100': tab !== 'history'}"
+                class="px-4 py-2 uppercase tracking-wide text-sm transition-all focus:outline-none">
+                <span class="mr-2">📜</span> Мои заказы
+            </button>
+            <button @click="tab = 'pay'"
+                :class="{'text-accent font-bold border-b-2 border-accent': tab === 'pay', 'opacity-70 hover:opacity-100': tab !== 'pay'}"
+                class="px-4 py-2 uppercase tracking-wide text-sm transition-all focus:outline-none">
+                <span class="mr-2">💳</span> Оплатить долг
+            </button>
+        </div>
+
+        <!-- Catalog Tab -->
+        <div x-show="tab === 'catalog'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for product in products %}
+            <div
+                class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm hover:shadow-md hover:border-accent/50 transition-all flex flex-col justify-between h-full">
+                <div>
+                    <h3 class="text-xl font-bold mb-2">{{ product.name }}</h3>
+                    <p class="text-3xl font-extrabold text-textmain opacity-90 mb-4">{{ product.price }} ₸</p>
+                </div>
+
+                <form method="post" action="{% url 'wholesaler_dashboard' %}"
+                    class="mt-auto space-y-3 pt-4 border-t border-slate-200">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+
+                    <div>
+                        <label class="text-xs opacity-70 block mb-1">Количество (шт)</label>
+                        <input type="number" name="quantity" min="1" value="1" required
+                            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-1 focus:ring-accent">
+                    </div>
+
+                    <button type="submit" onclick="return confirm('Подтвердить оформление заказа?')"
+                        class="w-full py-2.5 bg-accent hover:bg-accent/90 text-white font-semibold rounded-lg shadow-md transition-all duration-200">
+                        ЗАКАЗАТЬ
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- History Tab -->
+        <div x-show="tab === 'history'" style="display: none;"
+            class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="divide-y divide-slate-100">
+                {% for order in my_orders %}
+                <div
+                    class="p-5 flex flex-col md:flex-row justify-between md:items-center hover:bg-slate-50 transition-colors gap-4">
+                    <div>
+                        <p class="font-bold text-lg mb-1">{{ order.product.name }} <span
+                                class="opacity-60 text-sm ml-2">x {{ order.quantity }}</span></p>
+                        <p class="text-xs opacity-60">{{ order.created_at|date:"d.m.Y H:i" }} | Итого: <span
+                                class="font-bold text-accent text-sm">{{ order.total_price }} ₸</span></p>
+                    </div>
+                    <span class="px-3 py-1.5 text-xs font-semibold rounded-lg 
+                            {% if order.status == 'new' %}bg-yellow-500/20 text-yellow-500
+                            {% elif order.status == 'in_production' %}bg-accent/20 text-accent
+                            {% else %}bg-brandgreen/20 text-brandgreen{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="p-8 text-center text-slate-400">История заказов пуста.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pay Tab -->
+        <div x-show="tab === 'pay'" style="display: none;"
+            class="max-w-md mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm p-8">
+            <h3 class="text-xl font-bold mb-4 text-center">Погашение долга</h3>
+            <p class="text-sm opacity-70 mb-6 text-center">Внесите сумму для погашения текущего долга ({{ wholesaler.balance }} ₸).</p>
+
+            <form method="post" action="{% url 'wholesaler_repay' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="wholesaler_id" value="{{ wholesaler.id }}">
+                <div>
+                    <label class="block text-sm font-medium opacity-80 mb-1">Сумма (₸)</label>
+                    <input type="number" name="amount" min="1" step="0.01" required
+                        class="w-full px-4 py-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:ring-2 focus:ring-accent text-xl font-bold">
+                </div>
+                <button type="submit" onclick="return confirm('Подтвердить платеж?')"
+                    class="w-full py-3 px-4 bg-accent hover:bg-accent/90 text-white font-semibold rounded-lg shadow-md transition-all mt-4 text-lg">
+                    ОПЛАТИТЬ
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Simple inline JS for tabs as fallback since Alpine wasn't explicitly loaded if without internet -->
+<script>
+    document.addEventListener('alpine:init', () => {
+        // Alpine is available
+    });
+
+    // Vanilla JS fallback for tabs if needed
+    const tabButtons = document.querySelectorAll('[x-data] button');
+    const catalogTab = document.querySelector('[x-show="tab === \'catalog\'"]');
+    const historyTab = document.querySelector('[x-show="tab === \'history\'"]');
+    const payTab = document.querySelector('[x-show="tab === \'pay\'"]');
+
+    // ... Alpine is standard for this via CDN but let's provide minimal JS for tabs
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', function () {
+            if (window.Alpine) return; // let Alpine handle it if loaded
+            const attr = this.getAttribute('@click');
+            if (attr.includes('catalog')) {
+                catalogTab.style.display = 'grid'; historyTab.style.display = 'none'; payTab.style.display = 'none';
+            } else if (attr.includes('history')) {
+                catalogTab.style.display = 'none'; historyTab.style.display = 'block'; payTab.style.display = 'none';
+            } else if (attr.includes('pay')) {
+                catalogTab.style.display = 'none'; historyTab.style.display = 'none'; payTab.style.display = 'block';
+            }
+        });
+    });
+</script>
+{% endblock %}
